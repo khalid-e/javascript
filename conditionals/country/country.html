@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>City to Country Checker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #eef2f3;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background: white;
+      padding: 25px 35px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    input, button {
+      padding: 10px;
+      margin: 10px;
+      width: 250px;
+      font-size: 16px;
+    }
+    #result {
+      margin-top: 15px;
+      font-weight: bold;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>City to Country Checker</h2>
+    <input type="text" id="cityInput" placeholder="Enter a city name">
+    <br>
+    <button onclick="findCountry()">Check Country</button>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    function findCountry() {
+      const city = document.getElementById("cityInput").value.toLowerCase();
+      let country;
+
+      switch (city) {
+        // USA
+        case "new york":
+        case "los angeles":
+        case "chicago":
+        case "houston":
+          country = "United States";
+          break;
+
+        // UK
+        case "london":
+        case "manchester":
+        case "birmingham":
+          country = "United Kingdom";
+          break;
+
+        // France
+        case "paris":
+        case "lyon":
+        case "marseille":
+          country = "France";
+          break;
+
+        // Japan
+        case "tokyo":
+        case "osaka":
+        case "kyoto":
+          country = "Japan";
+          break;
+
+        // Egypt
+        case "cairo":
+        case "alexandria":
+        case "giza":
+          country = "Egypt";
+          break;
+
+        // India
+        case "mumbai":
+        case "delhi":
+        case "bengaluru":
+        case "kolkata":
+          country = "India";
+          break;
+
+        // Germany
+        case "berlin":
+        case "munich":
+        case "hamburg":
+          country = "Germany";
+          break;
+
+        // Canada
+        case "toronto":
+        case "vancouver":
+        case "montreal":
+          country = "Canada";
+          break;
+
+        // Brazil
+        case "sao paulo":
+        case "rio de janeiro":
+        case "brasilia":
+          country = "Brazil";
+          break;
+
+        // Australia
+        case "sydney":
+        case "melbourne":
+        case "brisbane":
+          country = "Australia";
+          break;
+
+        default:
+          country = "Unknown or Not Listed";
+      }
+
+      document.getElementById("result").innerText = `Country: ${country}`;
+    }
+  </script>
+
+</body>
+</html>
