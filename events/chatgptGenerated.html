@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>All Common Event Examples</title>
+</head>
+<body>
+  <h1>Common JavaScript Events</h1>
+
+  <!-- CLICK -->
+  <button id="btnClick">Click me</button><br><br>
+
+  <!-- DOUBLE CLICK -->
+  <button id="btnDblClick">Double click me</button><br><br>
+
+  <!-- RIGHT CLICK -->
+  <button id="btnContext">Right-click me</button><br><br>
+
+  <!-- CHANGE -->
+  <select id="selChange">
+    <option value="">Choose something</option>
+    <option>Apple</option>
+    <option>Banana</option>
+  </select><br><br>
+
+  <!-- INPUT -->
+  <input type="text" id="txtInput" placeholder="Type something"><br><br>
+
+  <!-- FOCUS / BLUR -->
+  <input type="text" id="txtFocus" placeholder="Focus/blur me"><br><br>
+
+  <!-- MOUSEOVER / MOUSEOUT -->
+  <div id="hoverBox" style="width:150px; height:50px; background:lightblue;">Hover here</div><br><br>
+
+  <!-- MOUSEDOWN / MOUSEUP -->
+  <div id="mouseBox" style="width:150px; height:50px; background:lightgreen;">Hold mouse down here</div><br><br>
+
+  <!-- KEYDOWN / KEYUP -->
+  <input type="text" id="keyBox" placeholder="Press keys"><br><br>
+
+  <!-- SCROLL -->
+  <div id="scrollBox" style="width:200px; height:100px; overflow:auto; background:lightyellow;">
+    <div style="height:300px;">Scroll inside me</div>
+  </div><br><br>
+
+  <!-- DRAG / DROP -->
+  <div id="dragItem" draggable="true" style="width:100px; height:40px; background:orange;">Drag me</div>
+  <div id="dropZone" style="width:150px; height:60px; background:lightgray; margin-top:5px;">Drop here</div><br><br>
+
+  <!-- COPY / PASTE -->
+  <input type="text" id="clipBox" placeholder="Copy or paste here"><br><br>
+
+  <!-- WINDOW RESIZE -->
+  <p id="resizeMsg">Resize the window to see this change.</p><br>
+
+  <script>
+    // CLICK
+    document.getElementById("btnClick").addEventListener("click", () => alert("Button clicked"));
+
+    // DOUBLE CLICK
+    document.getElementById("btnDblClick").addEventListener("dblclick", () => alert("Button double-clicked"));
+
+    // RIGHT CLICK
+    document.getElementById("btnContext").addEventListener("contextmenu", e => {
+      e.preventDefault();
+      alert("Right-click detected");
+    });
+
+    // CHANGE
+    document.getElementById("selChange").addEventListener("change", function() {
+      alert("You chose: " + this.value);
+    });
+
+    // INPUT
+    document.getElementById("txtInput").addEventListener("input", function() {
+      console.log("Input: " + this.value);
+    });
+
+    // FOCUS / BLUR
+    document.getElementById("txtFocus").addEventListener("focus", () => console.log("Input focused"));
+    document.getElementById("txtFocus").addEventListener("blur", () => console.log("Input lost focus"));
+
+    // MOUSEOVER / MOUSEOUT
+    const hoverBox = document.getElementById("hoverBox");
+    hoverBox.addEventListener("mouseover", () => hoverBox.style.background = "pink");
+    hoverBox.addEventListener("mouseout", () => hoverBox.style.background = "lightblue");
+
+    // MOUSEDOWN / MOUSEUP
+    const mouseBox = document.getElementById("mouseBox");
+    mouseBox.addEventListener("mousedown", () => mouseBox.style.background = "red");
+    mouseBox.addEventListener("mouseup", () => mouseBox.style.background = "lightgreen");
+
+    // KEYDOWN / KEYUP
+    document.getElementById("keyBox").addEventListener("keydown", e => console.log("Key down: " + e.key));
+    document.getElementById("keyBox").addEventListener("keyup", e => console.log("Key up: " + e.key));
+
+    // SCROLL
+    document.getElementById("scrollBox").addEventListener("scroll", () => console.log("Scrolling..."));
+
+    // DRAG / DROP
+    const dragItem = document.getElementById("dragItem");
+    const dropZone = document.getElementById("dropZone");
+    dragItem.addEventListener("dragstart", e => e.dataTransfer.setData("text/plain", "This is the item"));
+    dropZone.addEventListener("dragover", e => e.preventDefault());
+    dropZone.addEventListener("drop", e => {
+      e.preventDefault();
+      alert("Item dropped!");
+    });
+
+    // COPY / PASTE
+    document.getElementById("clipBox").addEventListener("copy", () => console.log("Copied text"));
+    document.getElementById("clipBox").addEventListener("paste", () => console.log("Pasted text"));
+
+    // WINDOW RESIZE
+    window.addEventListener("resize", () => {
+      document.getElementById("resizeMsg").textContent = "Window resized at " + new Date().toLocaleTimeString();
+    });
+  </script>
+</body>
+</html>

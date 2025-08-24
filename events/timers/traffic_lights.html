@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Traffic Light Simulation – Better</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root{
+    --bg:#0f1420;
+    --red-on:#ff3b30;   --red-off:#2a0b0e;
+    --amb-on:#ffba08;   --amb-off:#2b1f0a;
+    --grn-on:#22c55e;   --grn-off:#0a2014;
+    --housing:#0e1320;  --plate:#090d16;
+  }
+
+  /* Scene */
+  body{
+    margin:0; min-height:100svh; display:grid; place-items:center;
+    background:
+      radial-gradient(900px 600px at 70% -20%, #0a1020 0%, transparent 60%),
+      radial-gradient(900px 600px at 20% 120%, #0a1020 0%, transparent 70%),
+      var(--bg);
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    color:#dbe3f0;
+  }
+
+  .scene{ position:relative; padding-top:40px; }
+
+  /* --- Pole (now behind) --- */
+  .pole{
+    position:absolute; left:50%; transform:translateX(-50%); top:140px;
+    width:22px; height:380px; border-radius:12px;
+    background: linear-gradient(90deg,#0b0f18, #1a2130 40%, #0b0f18 100%);
+    box-shadow: inset 0 0 0 1px #0a0e16, 0 10px 40px rgba(0,0,0,.55);
+    z-index: 0;           /* <- keep behind */
+  }
+  .base{
+    width:120px; height:20px; background:#0b0f17; border-radius:10px;
+    position:absolute; left:50%; transform:translateX(-50%); bottom:-14px;
+    box-shadow: 0 6px 20px rgba(0,0,0,.6);
+  }
+
+  /* Backplate & housing */
+  .stack-top{ position:relative; z-index: 2; } /* <- keep in front */
+
+  .backplate{
+    width:170px; padding:14px; border-radius:18px;
+    background: linear-gradient(180deg,#0a0e16,#05070c);
+    box-shadow: 0 20px 60px rgba(0,0,0,.6), inset 0 0 0 1px #0b0e15;
+  }
+  .traffic-light{
+    width:140px; padding:14px; margin:auto; border-radius:16px;
+    background: linear-gradient(180deg,#121724,#0c111b);
+    box-shadow: inset 0 0 0 1px #1f2937, inset 0 8px 24px rgba(255,255,255,.05);
+    display:grid; gap:14px;
+  }
+
+  /* Visors */
+  .visor{ position:relative; height:0; }
+  .visor::before{
+    content:""; position:absolute; top:-10px; left:-6px; right:-6px; height:22px;
+    background: linear-gradient(180deg,#0b1019,#060910); border-radius:10px;
+    box-shadow: inset 0 -2px 0 0 #0d121a, 0 2px 6px rgba(0,0,0,.5);
+  }
+
+  /* Lenses */
+  .light{
+    width:104px; height:104px; margin:auto; border-radius:999px; position:relative; overflow:hidden;
+    background:#111827;
+    box-shadow: inset 0 0 0 1px #0d121a, inset 0 10px 24px rgba(0,0,0,.6);
+    transition: background .28s ease, box-shadow .28s ease, filter .28s ease;
+  }
+  .light::after{
+    content:""; position:absolute; inset:0;
+    background:
+      radial-gradient(110px 70px at 30% 25%, rgba(255,255,255,.22), transparent 45%),
+      radial-gradient(90px 60px at 70% 70%, rgba(255,255,255,.08), transparent 55%),
+      repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,.05) 0 1px, transparent 1px 2px);
+    mix-blend-mode:overlay; pointer-events:none;
+  }
+
+  /* Off states */
+  .red   { background: radial-gradient(60px 60px at 50% 35%, #531b1f, var(--red-off) 70%); }
+  .amber { background: radial-gradient(60px 60px at 50% 35%, #503b14, var(--amb-off) 70%); }
+  .green { background: radial-gradient(60px 60px at 50% 35%, #0f3a22, var(--grn-off) 70%); }
+
+  /* On states (glow) */
+  .on.red{
+    background: radial-gradient(72px 72px at 50% 35%, #ff7a70, var(--red-on) 45%, #6b1113 70%);
+    box-shadow: 0 0 12px 3px rgba(255,255,255,.15), 0 0 40px 8px var(--red-on);
+    filter: saturate(1.1);
+  }
+  .on.amber{
+    background: radial-gradient(72px 72px at 50% 35%, #ffd36b, var(--amb-on) 45%, #5c3d08 70%);
+    box-shadow: 0 0 12px 3px rgba(255,255,255,.15), 0 0 40px 8px var(--amb-on);
+    filter: saturate(1.1);
+  }
+  .on.green{
+    background: radial-gradient(72px 72px at 50% 35%, #8bf2b0, var(--grn-on) 45%, #0f5a33 70%);
+    box-shadow: 0 0 12px 3px rgba(255,255,255,.15), 0 0 40px 8px var(--grn-on);
+    filter: saturate(1.1);
+  }
+
+  /* Controls */
+  .panel{
+    margin-top:16px; display:flex; flex-wrap:wrap; gap:8px; justify-content:center;
+  }
+  .panel > *{
+    background:#0f1624; color:#e5e7eb; border:1px solid #273041;
+    padding:10px 12px; border-radius:10px; cursor:pointer;
+  }
+  .panel label{ cursor:default; }
+  .panel input[type="range"]{ width:160px; }
+  .status{ text-align:center; margin-top:10px; font-size:14px; color:#a5b4fc; }
+
+  /* Decorative road */
+  .road{
+    position:fixed; left:0; right:0; bottom:0; height:140px;
+    background:
+      linear-gradient(0deg, #0a0e15, #0a0e1500 60%),
+      repeating-linear-gradient(90deg, #111827 0 40px, #0d1422 40px 80px);
+    opacity:.6; pointer-events:none;
+  }
+</style>
+</head>
+<body>
+  <div class="scene" aria-live="polite">
+    <!-- Pole stays behind -->
+    <div class="pole"><div class="base"></div></div>
+
+    <!-- Light housing stays in front -->
+    <div class="stack-top">
+      <div class="backplate">
+        <div class="traffic-light" role="group" aria-label="Traffic light">
+          <div class="visor"></div>
+          <div class="light red"   id="red"   aria-label="Red light"></div>
+          <div class="light amber" id="amber" aria-label="Amber light"></div>
+          <div class="light green" id="green" aria-label="Green light"></div>
+        </div>
+      </div>
+
+      <div class="panel" role="toolbar" aria-label="Controls">
+        <button id="btnStart" type="button">Start</button>
+        <button id="btnPause" type="button">Pause</button>
+        <button id="btnReset" type="button">Reset</button>
+
+        <label>Mode:
+          <select id="mode">
+            <option value="UK">UK</option>
+            <option value="US">US</option>
+          </select>
+        </label>
+
+        <label>Speed: <span id="speedLabel">1.0×</span>
+          <input id="speed" type="range" min="0.5" max="2" step="0.1" value="1">
+        </label>
+
+        <label>
+          <input id="night" type="checkbox"> Night (flashing)
+        </label>
+      </div>
+
+      <div class="status" id="status">State: —</div>
+    </div>
+  </div>
+
+  <div class="road" aria-hidden="true"></div>
+
+<script>
+(() => {
+  const lights = {
+    red:   document.getElementById('red'),
+    amber: document.getElementById('amber'),
+    green: document.getElementById('green')
+  };
+  const statusEl = document.getElementById('status');
+
+  const btnStart = document.getElementById('btnStart');
+  const btnPause = document.getElementById('btnPause');
+  const btnReset = document.getElementById('btnReset');
+  const modeSel  = document.getElementById('mode');
+  const speedEl  = document.getElementById('speed');
+  const speedLbl = document.getElementById('speedLabel');
+  const nightEl  = document.getElementById('night');
+
+  // Sequences
+  const SEQUENCES = {
+    UK: [
+      { name: 'Red',         on: ['red'],         ms: 4000 },
+      { name: 'Red + Amber', on: ['red','amber'], ms: 1500 },
+      { name: 'Green',       on: ['green'],       ms: 5000 },
+      { name: 'Amber',       on: ['amber'],       ms: 2000 },
+    ],
+    US: [
+      { name: 'Red',    on: ['red'],   ms: 4000 },
+      { name: 'Green',  on: ['green'], ms: 5000 },
+      { name: 'Yellow', on: ['amber'], ms: 2000 }, // "Yellow" displayed as amber
+    ]
+  };
+
+  let mode = modeSel.value;
+  let idx = 0;
+  let running = false;
+  let timer = null;
+  let flasher = null;
+  let speed = Number(speedEl.value); // multiplier
+
+  function setLights(onList){
+    for (const k of Object.keys(lights)) lights[k].classList.remove('on');
+    for (const k of onList) lights[k].classList.add('on', k === 'amber' ? 'amber' : k);
+    // ensure base color classes exist
+    // (we already have .red/.amber/.green on elements in HTML)
+  }
+
+  function render(){
+    const s = SEQUENCES[mode][idx];
+    setLights(s.on);
+    // Show friendly name (US uses "Yellow" but the lens is amber)
+    const name = s.name;
+    const dur  = Math.round((s.ms / speed) / 100) / 10; // seconds, 0.1 precision
+    statusEl.textContent = `State: ${name} (${dur}s) • Mode: ${mode} • Speed: ${speed.toFixed(1)}×`;
+  }
+
+  function scheduleNext(){
+    clearTimeout(timer);
+    const s = SEQUENCES[mode][idx];
+    timer = setTimeout(() => {
+      idx = (idx + 1) % SEQUENCES[mode].length;
+      if (running) cycle();
+    }, s.ms / speed);
+  }
+
+  function cycle(){
+    if (!running) return;
+    render();
+    scheduleNext();
+  }
+
+  function start(){
+    if (running) return;
+    if (nightEl.checked) return; // in night mode we don't run cycle
+    running = true;
+    cycle();
+  }
+  function pause(){
+    running = false;
+    clearTimeout(timer);
+    statusEl.textContent = 'State: Paused';
+  }
+  function reset(){
+    pause();
+    idx = 0;
+    render();
+  }
+
+  // Night flashing (amber/yellow)
+  function startFlashing(){
+    stopFlashing();
+    pause();
+    let on = false;
+    flasher = setInterval(() => {
+      on = !on;
+      setLights(on ? ['amber'] : []);
+      statusEl.textContent = `State: Night flash (${on ? 'on' : 'off'})`;
+    }, 600 / speed);
+  }
+  function stopFlashing(){
+    if (flasher) clearInterval(flasher);
+    flasher = null;
+  }
+
+  // UI hooks
+  btnStart.addEventListener('click', start);
+  btnPause.addEventListener('click', pause);
+  btnReset.addEventListener('click', reset);
+
+  modeSel.addEventListener('change', () => {
+    mode = modeSel.value;
+    idx = 0;
+    if (!nightEl.checked) render();
+  });
+
+  speedEl.addEventListener('input', () => {
+    speed = Number(speedEl.value);
+    speedLbl.textContent = `${speed.toFixed(1)}×`;
+    if (nightEl.checked && flasher) { startFlashing(); } // restart flasher to apply speed
+    else if (running) { cycle(); } // reschedule next tick using new speed
+    else { render(); }
+  });
+
+  nightEl.addEventListener('change', () => {
+    if (nightEl.checked) {
+      startFlashing();
+    } else {
+      stopFlashing();
+      setLights([]); // clear
+      render();
+    }
+  });
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    const k = e.key.toLowerCase();
+    if (k === 's') start();
+    if (k === 'p') pause();
+    if (k === 'r') reset();
+    if (k === 'n') nightEl.click();
+  });
+
+  // Init
+  render();
+  start();
+})();
+</script>
+</body>
+</html>
